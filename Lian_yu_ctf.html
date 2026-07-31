@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Penetration Testing & Assessment Report: Lian Yu</title>
+  <style>
+    /* GitHub Dark Theme Core Reset & Typography */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+      font-size: 16px;
+      line-height: 1.5;
+      color: #c9d1d9;
+      background-color: #0d1117;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    /* GitHub Structural Headers */
+    h1, h2, h3, h4 {
+      color: #f0f6fc;
+      font-weight: 600;
+      line-height: 1.25;
+      margin-top: 24px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 2em;
+      border-bottom: 1px solid #21262d;
+      padding-bottom: 0.3em;
+    }
+
+    h2 {
+      font-size: 1.5em;
+      border-bottom: 1px solid #21262d;
+      padding-bottom: 0.3em;
+    }
+
+    h3 {
+      font-size: 1.25em;
+    }
+
+    hr {
+      height: 0.25em;
+      padding: 0;
+      margin: 24px 0;
+      background-color: #30363d;
+      border: 0;
+    }
+
+    p, ul, ol {
+      margin-top: 0;
+      margin-bottom: 16px;
+    }
+
+    ul, ol {
+      padding-left: 2em;
+    }
+
+    li + li {
+      margin-top: 0.25em;
+    }
+
+    strong {
+      color: #f0f6fc;
+      font-weight: 600;
+    }
+
+    /* GitHub Tables */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 16px;
+      margin-bottom: 16px;
+      display: table;
+    }
+
+    table th, table td {
+      padding: 8px 13px;
+      border: 1px solid #30363d;
+    }
+
+    table th {
+      font-weight: 600;
+      background-color: #161b22;
+      color: #f0f6fc;
+      text-align: left;
+    }
+
+    table tr {
+      background-color: #0d1117;
+      border-top: 1px solid #21262d;
+    }
+
+    table tr:nth-child(even) {
+      background-color: #161b22;
+    }
+
+    /* Code Blocks & Monospace Styling */
+    code {
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 85%;
+      background-color: rgba(110, 118, 129, 0.4);
+      border-radius: 6px;
+      padding: 0.2em 0.4em;
+      color: #c9d1d9;
+    }
+
+    pre {
+      background-color: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 16px;
+      overflow: auto;
+      font-size: 85%;
+      line-height: 1.45;
+      position: relative;
+      margin-top: 16px;
+      margin-bottom: 16px;
+    }
+
+    pre code {
+      background-color: transparent;
+      padding: 0;
+      border-radius: 0;
+      font-size: 100%;
+      white-space: pre;
+    }
+
+    /* Dynamic Copy Button */
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-family: inherit;
+      font-weight: 500;
+      color: #c9d1d9;
+      background-color: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+
+    .copy-btn:hover {
+      background-color: #30363d;
+      border-color: #8b949e;
+    }
+
+    .copy-btn.copied {
+      color: #3fb950;
+      border-color: #2ea043;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Penetration Testing & Assessment Report: Lian Yu</h1>
+
+  <h2>Executive Summary</h2>
+  <p>A comprehensive security assessment was conducted against the target system <strong>Lian Yu</strong> (<code>10.112.146.207</code>). The objective was to perform security enumeration, exploit exposed vulnerabilities to establish initial foothold access, and execute privilege escalation to achieve administrative (root) control.</p>
+  <p>The assessment successfully resulted in full system compromise. Initial access was obtained via weak credential management and hidden data embedded within hosted web assets using steganography. Administrative control was subsequently established due to insecure Sudo execution privileges configured for system binaries.</p>
+
+  <hr>
+
+  <h2>Assessment & Host Overview</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Attribute</th>
+        <th>Details</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Target Machine</strong></td>
+        <td>Lian Yu (TryHackMe)</td>
+      </tr>
+      <tr>
+        <td><strong>Target IP Address</strong></td>
+        <td><code>10.112.146.207</code></td>
+      </tr>
+      <tr>
+        <td><strong>Operating System</strong></td>
+        <td>Linux (Debian 8 "Jessie")</td>
+      </tr>
+      <tr>
+        <td><strong>Highest Privilege Achieved</strong></td>
+        <td><code>root</code> (Full Control)</td>
+      </tr>
+      <tr>
+        <td><strong>Impact Rating</strong></td>
+        <td><strong>Critical</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <h2>Detailed Exploitation Timeline</h2>
+
+  <h3>Phase 1: Reconnaissance & Port Scanning</h3>
+  <p>An initial network port scan identified three exposed core network services and RPC bindings on the target machine.</p>
+
+  <pre><code>PORT      STATE SERVICE VERSION
+21/tcp    open  ftp     vsftpd 3.0.2
+22/tcp    open  ssh     OpenSSH 6.7p1 Debian 5+deb8u8 (protocol 2.0)
+| ssh-hostkey: 
+|   1024 56:50:bd:11:ef:d4:ac:56:32:c3:ee:73:3e:de:87:f4 (DSA)
+|   2048 39:6f:3a:9c:b6:2d:ad:0c:d8:6d:be:77:13:07:25:d6 (RSA)
+|   256 a6:69:96:d7:6d:61:27:96:7e:bb:9f:83:60:1b:52:12 (ECDSA)
+|_  256 3f:43:76:75:a8:5a:a6:cd:33:b0:66:42:04:91:fe:a0 (ED25519)
+80/tcp    open  http    Apache httpd ("Purgatory")
+111/tcp   open  rpcbind 2-4 (RPC #100000)</code></pre>
+
+  <h3>Phase 2: Web Enumeration & Obfuscated Data Discovery</h3>
+  <p>Content discovery was executed against the HTTP service on port 80 utilizing <code>gobuster</code>, revealing an obfuscated directory tree.</p>
+  <ol>
+    <li>Directory bruteforcing identified the path <code>/island</code>.</li>
+    <li>Recursive scanning underneath <code>/island</code> unveiled <code>/2100/green_arrow.ticket</code>.</li>
+    <li>Inspection of <code>green_arrow.ticket</code> yielded an encoded string: <code>RTy8yhBQdscX</code>.</li>
+    <li>Decoding the string via <strong>Base58</strong> recovered the plaintext FTP password: <code>!#th3h00d</code>.</li>
+  </ol>
+
+  <h3>Phase 3: Initial Access via FTP & Steganographic Analysis</h3>
+  <p>Using the recovered password alongside the user context derived from the target theme, valid FTP credentials were established.</p>
+  <ul>
+    <li><strong>FTP Username:</strong> <code>vigilante</code></li>
+    <li><strong>FTP Password:</strong> <code>!#th3h00d</code></li>
+  </ul>
+
+  <p>Upon connecting to the FTP service, the following files were exfiltrated:</p>
+  <ul>
+    <li><code>.other_user</code> (Indicated secondary system username context)</li>
+    <li><code>aa.jpg</code></li>
+    <li><code>Queen's_Gambit.png</code></li>
+    <li><code>Leave_me_alone.png</code></li>
+  </ul>
+
+  <p>Steganographic extraction was performed on the downloaded media assets using <code>steghide</code> with the passphrase <code>password</code>. This revealed two hidden files:</p>
+  <ul>
+    <li><code>passwd.txt</code> – Containing the SSH username: <code>slade</code></li>
+    <li><code>shado</code> – Containing the SSH password: <code>M3tahuman</code></li>
+  </ul>
+
+  <h3>Phase 4: System Access & Flag Capture</h3>
+  <p>SSH authentication was executed using the discovered credentials:</p>
+
+  <pre><code>ssh slade@10.112.146.207</code></pre>
+
+  <p>Upon logging in as <code>slade</code>, local system inspection yielded the <strong>User Flag</strong>:</p>
+
+  <pre><code>THM{P30P7E_K33P_53CRET5__C0MPUT3R5_D0N'T}</code></pre>
+
+  <h3>Phase 5: Privilege Escalation to Root</h3>
+  <p>An audit of Sudo permissions for the user <code>slade</code> was conducted:</p>
+
+  <pre><code>sudo -l</code></pre>
+
+  <p>The configuration indicated that <code>slade</code> was authorized to execute <code>/usr/bin/pkexec</code> as root using <code>sudo</code>. Executing a shell binary via PolicyKit achieved instant root context:</p>
+
+  <pre><code>sudo pkexec /bin/sh</code></pre>
+
+  <p>Verifying system identity confirmed <code>uid=0(root) gid=0(root)</code>, granting full system compromise and access to the <strong>Root Flag</strong>:</p>
+
+  <pre><code>THM{MY_W0RD_I5_MY_B0ND_IF_I_ACC3PT_YOUR_CONTRACT_THEN_IT_WILL_BE_COMPL3TED_OR_I'LL_BE_D34D}</code></pre>
+
+  <hr>
+
+  <h2>Compromised System Assets</h2>
+
+  <h3>Recovered Credentials</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Service</th>
+        <th>Username</th>
+        <th>Secret / Password</th>
+        <th>Context</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>FTP</strong></td>
+        <td><code>vigilante</code></td>
+        <td><code>!#th3h00d</code></td>
+        <td>Base58 decoded ticket</td>
+      </tr>
+      <tr>
+        <td><strong>Steghide</strong></td>
+        <td>N/A</td>
+        <td><code>password</code></td>
+        <td>Image extraction passphrase</td>
+      </tr>
+      <tr>
+        <td><strong>SSH</strong></td>
+        <td><code>slade</code></td>
+        <td><code>M3tahuman</code></td>
+        <td>Extracted from stego image <code>shado</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Captured Flags</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Path</th>
+        <th>Cryptographic Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>User Flag</strong></td>
+        <td><code>/home/slade/user.txt</code></td>
+        <td><code>THM{P30P7E_K33P_53CRET5__C0MPUT3R5_D0N'T}</code></td>
+      </tr>
+      <tr>
+        <td><strong>Root Flag</strong></td>
+        <td><code>/root/root.txt</code></td>
+        <td><code>THM{MY_W0RD_I5_MY_B0ND_IF_I_ACC3PT_YOUR_CONTRACT_THEN_IT_WILL_BE_COMPL3TED_OR_I'LL_BE_D34D}</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <h2>Recommended Security Hardening</h2>
+  <ol>
+    <li><strong>Remove Obfuscated Data from Web Trees:</strong> Sensitive system credentials or tokens should never be stored in readable files within public web directories.</li>
+    <li><strong>Restrict FTP Access and Implement Strong Authentication:</strong> Ensure anonymous or weak credential access is prohibited and media files containing embedded data are removed from user storage.</li>
+    <li><strong>Sudo / Privilege Policy Hardening:</strong> Review <code>/etc/sudoers</code> configuration. Restrict execution privileges on powerful binaries such as <code>pkexec</code>, which allow interactive shell invocation (<code>/bin/sh</code> or <code>/bin/bash</code>).</li>
+    <li><strong>Upgrade Legacy OS & Software Versions:</strong> Debian 8 (Jessie) and legacy versions of OpenSSH/vsftpd are end-of-life and present additional unpatched vulnerabilities. Upgrading to a supported operating system branch is strongly advised.</li>
+  </ol>
+
+  <!-- Interactive Copy Button Engine -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll("pre").forEach((codeBlock) => {
+        const copyButton = document.createElement("button");
+        copyButton.className = "copy-btn";
+        copyButton.type = "button";
+        copyButton.innerText = "Copy";
+
+        copyButton.addEventListener("click", () => {
+          const codeText = codeBlock.querySelector("code") 
+            ? codeBlock.querySelector("code").innerText 
+            : codeBlock.innerText;
+
+          navigator.clipboard.writeText(codeText).then(() => {
+            copyButton.innerText = "Copied!";
+            copyButton.classList.add("copied");
+            setTimeout(() => {
+              copyButton.innerText = "Copy";
+              copyButton.classList.remove("copied");
+            }, 2000);
+          }).catch(err => {
+            console.error("Failed to copy code: ", err);
+          });
+        });
+
+        codeBlock.appendChild(copyButton);
+      });
+    });
+  </script>
+</body>
+</html>
+
