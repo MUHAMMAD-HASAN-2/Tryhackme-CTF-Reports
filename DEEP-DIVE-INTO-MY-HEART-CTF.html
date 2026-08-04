@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTF Writeup - Hidden Deep Into My Heart</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-color: #f43f5e;
+            --accent-hover: #e11d48;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --code-bg: #090d16;
+            --border-color: #334155;
+            --success-color: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 2.25rem;
+            color: var(--accent-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+            background-color: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .meta-item {
+            font-size: 0.9rem;
+        }
+
+        .meta-item strong {
+            color: var(--accent-color);
+            display: block;
+        }
+
+        section {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            color: var(--text-main);
+            border-left: 4px solid var(--accent-color);
+            padding-left: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            margin: 1rem 0 0.5rem 0;
+            color: var(--text-muted);
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: #cbd5e1;
+        }
+
+        ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            color: #cbd5e1;
+        }
+
+        li {
+            margin-bottom: 0.25rem;
+        }
+
+        pre, code {
+            font-family: 'Fira Code', monospace;
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .inline-code {
+            background-color: var(--code-bg);
+            color: var(--accent-color);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            border: 1px solid var(--border-color);
+        }
+
+        .credentials-box {
+            background-color: rgba(244, 63, 94, 0.1);
+            border: 1px solid var(--accent-color);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .credentials-box h3 {
+            color: var(--accent-color);
+            margin-top: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--accent-color);
+        }
+
+        footer {
+            text-align: center;
+            padding-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Hidden Deep Into My Heart - CTF Report</h1>
+            <p>TryHackMe Machine Writeup & Security Assessment</p>
+            
+            <div class="meta-grid">
+                <div class="meta-item">
+                    <strong>Target IP</strong>
+                    10.112.175.106
+                </div>
+                <div class="meta-item">
+                    <strong>Web Service Port</strong>
+                    5000 (HTTP)
+                </div>
+                <div class="meta-item">
+                    <strong>OS Platform</strong>
+                    Linux (Ubuntu)
+                </div>
+                <div class="meta-item">
+                    <strong>Platform</strong>
+                    TryHackMe
+                </div>
+            </div>
+        </header>
+
+        <!-- Executive Summary -->
+        <section>
+            <h2>1. Executive Summary</h2>
+            <p>
+                During the assessment of the target machine <strong>10.112.175.106</strong> running the "Hidden Deep Into My Heart" challenge, reconnaissance revealed an open SSH instance and a Werkzeug-based Python web application running on port 5000 titled <em>"Love Letters Anonymous"</em>. 
+            </p>
+            <p>
+                Further enumeration of the web interface exposed administrative endpoints and hidden paths through sensitive files (<span class="inline-code">robots.txt</span>), ultimately leading to administrative credentials.
+            </p>
+        </section>
+
+        <!-- Reconnaissance & Scanning -->
+        <section>
+            <h2>2. Reconnaissance & Network Scanning</h2>
+            <p>An initial Nmap service scan was executed to discover open ports and running services on the target host.</p>
+            
+            <h3>Nmap Command Output</h3>
+            <pre>PORT     STATE SERVICE VERSION
+22/tcp   open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.10 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   256 90:9d:36:a5:f5:ce:e4:f1:a3:11:40:e6:14:3b:79:4d (ECDSA)
+|_  256 b8:bd:c3:15:e2:b3:01:73:98:6e:96:99:20:38:cd:88 (ED25519)
+5000/tcp open  http    Werkzeug httpd 3.1.5 (Python 3.10.12)
+|_http-title: Love Letters Anonymous
+| http-robots.txt: 1 disallowed entry 
+|_/cupids_secret_vault/*
+|_http-server-header: Werkzeug/3.1.5 Python/3.10.12
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel</pre>
+
+            <h3>Discovered Services</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Port</th>
+                        <th>Service</th>
+                        <th>Version / Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>22/TCP</td>
+                        <td>SSH</td>
+                        <td>OpenSSH 8.9p1 Ubuntu 3ubuntu0.10</td>
+                    </tr>
+                    <tr>
+                        <td>5000/TCP</td>
+                        <td>HTTP</td>
+                        <td>Werkzeug httpd 3.1.5 (Python 3.10.12)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Web Enumeration -->
+        <section>
+            <h2>3. Web Application Enumeration</h2>
+            <p>
+                Navigating to <span class="inline-code">http://10.112.175.106:5000/</span> revealed the application title <strong>Love Letters Anonymous</strong>.
+            </p>
+            
+            <h3>Hidden Directories & Endpoints Found</h3>
+            <p>Analysis of directory structures and information disclosure files yielded the following paths:</p>
+            <ul>
+                <li><span class="inline-code">/robots.txt</span> — Disclosed restricted directory rules.</li>
+                <li><span class="inline-code">/cupids_secret_vault</span> — Restricted hidden vault path found inside <span class="inline-code">robots.txt</span>.</li>
+                <li><span class="inline-code">/administrator</span> — Admin login and management interface.</li>
+            </ul>
+        </section>
+
+        <!-- Exploitation / Findings -->
+        <section>
+            <h2>4. Findings & Credentials</h2>
+            <p>
+                Through endpoint inspection and administrative directory discovery, valid authentication credentials were key to gaining privileged web access.
+            </p>
+
+            <div class="credentials-box">
+                <h3>Discovered Credentials</h3>
+                <p><strong>Username:</strong> <span class="inline-code">admin</span></p>
+                <p><strong>Password:</strong> <span class="inline-code">cupid_arrow_2026!!!</span></p>
+            </div>
+        </section>
+
+        <!-- Conclusion -->
+        <section>
+            <h2>5. Conclusion & Recommendations</h2>
+            <ul>
+                <li><strong>Disable Sensitive Indexing:</strong> Avoid leaving sensitive admin pathways such as <span class="inline-code">/cupids_secret_vault</span> inside publicly accessible <span class="inline-code">robots.txt</span> files.</li>
+                <li><strong>Harden Authentication:</strong> Ensure strong password policies and implement multi-factor authentication (MFA) on the <span class="inline-code">/administrator</span> panel.</li>
+                <li><strong>Werkzeug Production Warning:</strong> Werkzeug is primarily a WSGI development server; ensure a production-grade server (e.g., Gunicorn or Nginx) is used in live deployments.</li>
+            </ul>
+        </section>
+
+        <footer>
+            <p>Report Generated for CTF Challenge: <em>Hidden Deep Into My Heart</em></p>
+        </footer>
+    </div>
+
+</body>
+</html>
